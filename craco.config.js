@@ -77,34 +77,37 @@ if (config.enableVisualEdits && babelMetadataPlugin) {
   };
 }
 
-webpackConfig.devServer = (devServerConfig) => {
-  // Set port to 443 and host to localhost to fix WebSocket connection
-  devServerConfig.port = 443;
-  devServerConfig.host = 'localhost';
+// Only configure devServer in development mode
+if (isDevServer) {
+  webpackConfig.devServer = (devServerConfig) => {
+    // Set port to 443 and host to localhost to fix WebSocket connection
+    devServerConfig.port = 443;
+    devServerConfig.host = 'localhost';
 
-  // Apply visual edits dev server setup only if enabled
-  if (config.enableVisualEdits && setupDevServer) {
-    devServerConfig = setupDevServer(devServerConfig);
-  }
+    // Apply visual edits dev server setup only if enabled
+    if (config.enableVisualEdits && setupDevServer) {
+      devServerConfig = setupDevServer(devServerConfig);
+    }
 
-  // Add health check endpoints if enabled
-  if (config.enableHealthCheck && setupHealthEndpoints && healthPluginInstance) {
-    const originalSetupMiddlewares = devServerConfig.setupMiddlewares;
+    // Add health check endpoints if enabled
+    if (config.enableHealthCheck && setupHealthEndpoints && healthPluginInstance) {
+      const originalSetupMiddlewares = devServerConfig.setupMiddlewares;
 
-    devServerConfig.setupMiddlewares = (middlewares, devServer) => {
-      // Call original setup if exists
-      if (originalSetupMiddlewares) {
-        middlewares = originalSetupMiddlewares(middlewares, devServer);
-      }
+      devServerConfig.setupMiddlewares = (middlewares, devServer) => {
+        // Call original setup if exists
+        if (originalSetupMiddlewares) {
+          middlewares = originalSetupMiddlewares(middlewares, devServer);
+        }
 
-      // Setup health endpoints
-      setupHealthEndpoints(devServer, healthPluginInstance);
+        // Setup health endpoints
+        setupHealthEndpoints(devServer, healthPluginInstance);
 
-      return middlewares;
-    };
-  }
+        return middlewares;
+      };
+    }
 
-  return devServerConfig;
-};
+    return devServerConfig;
+  };
+}
 
 module.exports = webpackConfig;
